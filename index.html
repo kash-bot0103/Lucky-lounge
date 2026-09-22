@@ -1,35 +1,446 @@
-♠ LUCKY LOUNGE             1,000 CR
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080b12">
+  <title>Lucky Lounge — Play Money Casino</title>
+  <link rel="stylesheet" href="style.css">
+</head>
 
-     HOME   GAMES   ACTIVITY
+<body>
 
-       WELCOME TO
-      LUCKY LOUNGE
-    PLAY-MONEY CASINO
+<header class="topbar">
+  <a href="#home" class="brand">
+    <span class="brand-mark">♠</span>
+    <span>
+      <strong>LUCKY LOUNGE</strong>
+      <small>PLAY MONEY</small>
+    </span>
+  </a>
 
-       [ PLAY NOW ]
+  <div class="balance-box">
+    <span>BALANCE</span>
+    <strong><span id="balance">1,000</span> CR</strong>
+  </div>
+</header>
 
-🔥 FEATURED GAMES
+<nav class="nav">
+  <a href="#home">🏠 Home</a>
+  <a href="#games">🎰 Games</a>
+  <a href="#activity">📜 Activity</a>
+</nav>
 
-┌───────────────┐
-│ 🎰 SLOTS      │
-│ Spin & match  │
-│ [ PLAY ]      │
-└───────────────┘
+<main>
 
-┌───────────────┐
-│ 🃏 BLACKJACK  │
-│ Beat dealer   │
-│ [ PLAY ]      │
-└───────────────┘
+<section id="home" class="hero">
+  <span class="pill">♠ PLAY-MONEY CASINO</span>
 
-┌───────────────┐
-│ 🎡 ROULETTE   │
-│ Pick a number │
-│ [ PLAY ]      │
-└───────────────┘
+  <h1>
+    Welcome to<br>
+    <span>Lucky Lounge</span>
+  </h1>
 
-┌───────────────┐
-│ 🎲 DICE       │
-│ High or low   │
-│ [ PLAY ]      │
-└───────────────┘
+  <p>
+    Play classic casino-style games with virtual credits.
+    No real money is involved.
+  </p>
+
+  <a href="#games" class="main-button">
+    PLAY NOW →
+  </a>
+</section>
+
+
+<section id="games" class="section">
+
+  <div class="section-heading">
+    <div>
+      <span class="eyebrow">🔥 FEATURED</span>
+      <h2>Casino Games</h2>
+      <p>Choose a game and try your luck.</p>
+    </div>
+  </div>
+
+
+  <div class="game-grid">
+
+    <article class="game-card">
+      <div class="game-icon">🎰</div>
+      <span class="game-tag">CLASSIC</span>
+      <h3>Lucky Slots</h3>
+      <p>Spin three reels and match symbols.</p>
+
+      <button class="game-button" onclick="openGame('slots')">
+        PLAY SLOTS →
+      </button>
+    </article>
+
+
+    <article class="game-card">
+      <div class="game-icon">🃏</div>
+      <span class="game-tag">21</span>
+      <h3>Blackjack</h3>
+      <p>Get closer to 21 than the dealer.</p>
+
+      <button class="game-button" onclick="openGame('blackjack')">
+        PLAY BLACKJACK →
+      </button>
+    </article>
+
+
+    <article class="game-card">
+      <div class="game-icon">🎡</div>
+      <span class="game-tag">ROULETTE</span>
+      <h3>Roulette</h3>
+      <p>Choose a color or number and spin.</p>
+
+      <button class="game-button" onclick="openGame('roulette')">
+        PLAY ROULETTE →
+      </button>
+    </article>
+
+
+    <article class="game-card">
+      <div class="game-icon">🎲</div>
+      <span class="game-tag">DICE</span>
+      <h3>High / Low Dice</h3>
+      <p>Choose high or low and roll the die.</p>
+
+      <button class="game-button" onclick="openGame('dice')">
+        PLAY DICE →
+      </button>
+    </article>
+
+  </div>
+</section>
+
+
+<section id="game-area" class="section game-area hidden">
+
+  <div class="game-heading">
+
+    <div>
+      <span class="eyebrow">🎮 NOW PLAYING</span>
+      <h2 id="gameTitle">Game</h2>
+    </div>
+
+    <button class="back-button" onclick="closeGame()">
+      ← Back
+    </button>
+
+  </div>
+
+
+  <!-- SLOTS -->
+
+  <div id="slotsPanel" class="game-panel hidden">
+
+    <h2>🎰 Lucky Slots</h2>
+
+    <div class="reels">
+
+      <div id="slot1">🍒</div>
+      <div id="slot2">🍋</div>
+      <div id="slot3">⭐</div>
+
+    </div>
+
+    <div class="bet-row">
+
+      <label>
+        BET
+        <input
+          id="slotBet"
+          type="number"
+          min="10"
+          max="500"
+          step="10"
+          value="10"
+        >
+      </label>
+
+      <button class="gold-button" onclick="playSlots()">
+        SPIN
+      </button>
+
+    </div>
+
+    <p id="slotResult" class="result">
+      Match three symbols for the biggest virtual payout.
+    </p>
+
+  </div>
+
+
+  <!-- BLACKJACK -->
+
+  <div id="blackjackPanel" class="game-panel hidden">
+
+    <h2>🃏 Blackjack</h2>
+
+    <div class="blackjack-table">
+
+      <div class="hand">
+
+        <div class="hand-title">
+          DEALER
+          <span id="dealerTotal">0</span>
+        </div>
+
+        <div id="dealerHand" class="cards"></div>
+
+      </div>
+
+
+      <div class="versus">VS</div>
+
+
+      <div class="hand">
+
+        <div class="hand-title">
+          YOU
+          <span id="playerTotal">0</span>
+        </div>
+
+        <div id="playerHand" class="cards"></div>
+
+      </div>
+
+    </div>
+
+
+    <div class="bet-row">
+
+      <label>
+        BET
+        <input
+          id="blackjackBet"
+          type="number"
+          min="10"
+          max="500"
+          step="10"
+          value="10"
+        >
+      </label>
+
+      <button
+        id="dealButton"
+        class="gold-button"
+        onclick="dealBlackjack()"
+      >
+        DEAL
+      </button>
+
+      <button
+        id="hitButton"
+        class="dark-button"
+        onclick="hitBlackjack()"
+        disabled
+      >
+        HIT
+      </button>
+
+      <button
+        id="standButton"
+        class="dark-button"
+        onclick="standBlackjack()"
+        disabled
+      >
+        STAND
+      </button>
+
+    </div>
+
+    <p id="blackjackResult" class="result">
+      Deal a hand to start.
+    </p>
+
+  </div>
+
+
+  <!-- ROULETTE -->
+
+  <div id="roulettePanel" class="game-panel hidden">
+
+    <h2>🎡 Roulette</h2>
+
+    <div id="rouletteWheel" class="roulette-wheel">
+      <span id="rouletteNumber">0</span>
+    </div>
+
+
+    <div class="roulette-buttons">
+
+      <button
+        class="choice red"
+        onclick="selectRoulette('red')"
+      >
+        🔴 RED
+      </button>
+
+      <button
+        class="choice black"
+        onclick="selectRoulette('black')"
+      >
+        ⚫ BLACK
+      </button>
+
+      <button
+        class="choice green"
+        onclick="selectRoulette('green')"
+      >
+        🟢 0
+      </button>
+
+    </div>
+
+
+    <div id="numberGrid" class="number-grid"></div>
+
+
+    <div class="bet-row">
+
+      <label>
+        BET
+        <input
+          id="rouletteBet"
+          type="number"
+          min="10"
+          max="500"
+          step="10"
+          value="10"
+        >
+      </label>
+
+      <button
+        class="gold-button"
+        onclick="playRoulette()"
+      >
+        SPIN WHEEL
+      </button>
+
+    </div>
+
+    <p id="rouletteResult" class="result">
+      Choose a color or number.
+    </p>
+
+  </div>
+
+
+  <!-- DICE -->
+
+  <div id="dicePanel" class="game-panel hidden">
+
+    <h2>🎲 High / Low Dice</h2>
+
+    <div id="dice" class="big-dice">
+      ⚄
+    </div>
+
+
+    <div class="choice-row">
+
+      <button
+        class="choice"
+        onclick="playDice('low')"
+      >
+        LOW
+        <small>1–3</small>
+      </button>
+
+      <button
+        class="choice"
+        onclick="playDice('high')"
+      >
+        HIGH
+        <small>4–6</small>
+      </button>
+
+    </div>
+
+
+    <div class="bet-row">
+
+      <label>
+        BET
+        <input
+          id="diceBet"
+          type="number"
+          min="10"
+          max="500"
+          step="10"
+          value="10"
+        >
+      </label>
+
+    </div>
+
+    <p id="diceResult" class="result">
+      Pick high or low, then roll.
+    </p>
+
+  </div>
+
+</section>
+
+
+<section id="activity" class="section">
+
+  <div class="section-heading">
+
+    <div>
+      <span class="eyebrow">📜 ACTIVITY</span>
+      <h2>Recent Games</h2>
+      <p>Your virtual-credit history.</p>
+    </div>
+
+    <button class="back-button" onclick="clearHistory()">
+      Clear
+    </button>
+
+  </div>
+
+
+  <div id="historyList" class="history-list">
+    <div class="empty">
+      No games played yet.
+    </div>
+  </div>
+
+</section>
+
+
+<section class="demo-notice">
+
+  <strong>PLAY-MONEY DEMO</strong>
+
+  <p>
+    This website uses virtual credits only.
+    Virtual credits have no cash value.
+    No deposits, withdrawals, or real-money prizes are available.
+  </p>
+
+  <button onclick="resetCredits()">
+    RESET TO 1,000 CREDITS
+  </button>
+
+</section>
+
+</main>
+
+
+<footer>
+  <strong>♠ LUCKY LOUNGE</strong>
+  <p>Play-money casino demonstration.</p>
+</footer>
+
+
+<div id="toast" class="toast"></div>
+
+
+<script src="app.js"></script>
+
+</body>
+</html>
