@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080b12">
   <title>Lucky Lounge — Play Money Casino</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -11,403 +10,378 @@
 <body>
 
 <header class="topbar">
-  <a href="#home" class="brand">
-    <span class="brand-mark">♠</span>
-    <span>
-      <strong>LUCKY LOUNGE</strong>
-      <small>PLAY MONEY</small>
-    </span>
-  </a>
+  <div class="brand">♠ LUCKY LOUNGE</div>
 
   <div class="balance-box">
-    <span>BALANCE</span>
-    <strong><span id="balance">1,000</span> CR</strong>
+    <span>Balance</span>
+    <strong id="balance">1,000 CR</strong>
   </div>
 </header>
 
 <nav class="nav">
-  <a href="#home">🏠 Home</a>
-  <a href="#games">🎰 Games</a>
-  <a href="#activity">📜 Activity</a>
+  <a href="#home">HOME</a>
+  <a href="#games">GAMES</a>
+  <a href="#activity">ACTIVITY</a>
 </nav>
 
 <main>
 
-<section id="home" class="hero">
-  <span class="pill">♠ PLAY-MONEY CASINO</span>
+<section class="hero" id="home">
+  <div class="hero-content">
+    <p class="eyebrow">PLAY-MONEY CASINO</p>
+    <h1>WELCOME TO<br>LUCKY LOUNGE</h1>
+    <p>Play casino-style games using virtual credits.</p>
 
-  <h1>
-    Welcome to<br>
-    <span>Lucky Lounge</span>
-  </h1>
-
-  <p>
-    Play classic casino-style games with virtual credits.
-    No real money is involved.
-  </p>
-
-  <a href="#games" class="main-button">
-    PLAY NOW →
-  </a>
+    <a class="main-button" href="#games">PLAY NOW</a>
+  </div>
 </section>
 
 
-<section id="games" class="section">
+<section class="games-section" id="games">
 
   <div class="section-heading">
-    <div>
-      <span class="eyebrow">🔥 FEATURED</span>
-      <h2>Casino Games</h2>
-      <p>Choose a game and try your luck.</p>
-    </div>
+    <p class="eyebrow">🔥 FEATURED GAMES</p>
+    <h2>Choose Your Game</h2>
   </div>
 
+  <div class="game-cards">
 
-  <div class="game-grid">
+    <button class="game-card" data-game="slots">
+      <span class="game-icon">🎰</span>
+      <h3>LUCKY SLOTS</h3>
+      <p>Spin & match</p>
+      <span class="card-button">PLAY</span>
+    </button>
 
-    <article class="game-card">
-      <div class="game-icon">🎰</div>
-      <span class="game-tag">CLASSIC</span>
-      <h3>Lucky Slots</h3>
-      <p>Spin three reels and match symbols.</p>
+    <button class="game-card" data-game="blackjack">
+      <span class="game-icon">🃏</span>
+      <h3>BLACKJACK</h3>
+      <p>Play against the dealer</p>
+      <span class="card-button">PLAY</span>
+    </button>
 
-      <button class="game-button" onclick="openGame('slots')">
-        PLAY SLOTS →
-      </button>
-    </article>
+    <button class="game-card" data-game="roulette">
+      <span class="game-icon">🎡</span>
+      <h3>ROULETTE</h3>
+      <p>Pick a number or color</p>
+      <span class="card-button">PLAY</span>
+    </button>
 
-
-    <article class="game-card">
-      <div class="game-icon">🃏</div>
-      <span class="game-tag">21</span>
-      <h3>Blackjack</h3>
-      <p>Get closer to 21 than the dealer.</p>
-
-      <button class="game-button" onclick="openGame('blackjack')">
-        PLAY BLACKJACK →
-      </button>
-    </article>
-
-
-    <article class="game-card">
-      <div class="game-icon">🎡</div>
-      <span class="game-tag">ROULETTE</span>
-      <h3>Roulette</h3>
-      <p>Choose a color or number and spin.</p>
-
-      <button class="game-button" onclick="openGame('roulette')">
-        PLAY ROULETTE →
-      </button>
-    </article>
-
-
-    <article class="game-card">
-      <div class="game-icon">🎲</div>
-      <span class="game-tag">DICE</span>
-      <h3>High / Low Dice</h3>
-      <p>Choose high or low and roll the die.</p>
-
-      <button class="game-button" onclick="openGame('dice')">
-        PLAY DICE →
-      </button>
-    </article>
-
-  </div>
-</section>
-
-
-<section id="game-area" class="section game-area hidden">
-
-  <div class="game-heading">
-
-    <div>
-      <span class="eyebrow">🎮 NOW PLAYING</span>
-      <h2 id="gameTitle">Game</h2>
-    </div>
-
-    <button class="back-button" onclick="closeGame()">
-      ← Back
+    <button class="game-card" data-game="dice">
+      <span class="game-icon">🎲</span>
+      <h3>HIGH / LOW DICE</h3>
+      <p>Pick high or low</p>
+      <span class="card-button">PLAY</span>
     </button>
 
   </div>
+</section>
 
 
-  <!-- SLOTS -->
+<section class="games-area">
 
-  <div id="slotsPanel" class="game-panel hidden">
+<!-- SLOTS -->
 
-    <h2>🎰 Lucky Slots</h2>
+<div class="game-panel" id="slotsPanel">
+
+  <div class="panel-title">
+    <span>🎰</span>
+    <div>
+      <h2>Lucky Slots</h2>
+      <p>Match symbols and win virtual credits.</p>
+    </div>
+  </div>
+
+  <div class="slot-machine">
 
     <div class="reels">
-
       <div id="slot1">🍒</div>
       <div id="slot2">🍋</div>
       <div id="slot3">⭐</div>
-
     </div>
 
-    <div class="bet-row">
+    <input id="slotBet" type="number" min="10" max="500" step="10" value="50">
 
-      <label>
-        BET
-        <input
-          id="slotBet"
-          type="number"
-          min="10"
-          max="500"
-          step="10"
-          value="10"
-        >
-      </label>
+    <button id="spinButton" class="gold-button">SPIN</button>
 
-      <button class="gold-button" onclick="playSlots()">
-        SPIN
-      </button>
-
-    </div>
-
-    <p id="slotResult" class="result">
-      Match three symbols for the biggest virtual payout.
-    </p>
+    <div id="slotResult" class="result"></div>
 
   </div>
 
+</div>
 
-  <!-- BLACKJACK -->
 
-  <div id="blackjackPanel" class="game-panel hidden">
+<!-- BLACKJACK -->
 
-    <h2>🃏 Blackjack</h2>
+<div class="game-panel active" id="blackjackPanel">
 
-    <div class="blackjack-table">
+  <div class="panel-title">
+    <span>🃏</span>
+    <div>
+      <h2>Blackjack Table</h2>
+      <p>Play against the dealer and virtual players.</p>
+    </div>
+  </div>
 
-      <div class="hand">
+  <div class="blackjack-table">
 
-        <div class="hand-title">
-          DEALER
-          <span id="dealerTotal">0</span>
-        </div>
+    <!-- DEALER -->
 
-        <div id="dealerHand" class="cards"></div>
+    <div class="dealer-area">
 
+      <div class="seat-label dealer-label">
+        👨‍💼 DEALER
       </div>
 
+      <div id="dealerCards" class="cards"></div>
 
-      <div class="versus">VS</div>
-
-
-      <div class="hand">
-
-        <div class="hand-title">
-          YOU
-          <span id="playerTotal">0</span>
-        </div>
-
-        <div id="playerHand" class="cards"></div>
-
+      <div id="dealerTotal" class="hand-total">
+        Total: —
       </div>
 
     </div>
 
 
-    <div class="bet-row">
+    <!-- VIRTUAL PLAYERS -->
 
-      <label>
-        BET
+    <div class="virtual-players">
+
+      <div class="player-seat" id="virtualPlayer1">
+        <div class="seat-label">
+          🤖 ALEX
+        </div>
+
+        <div class="player-bet">
+          Bet: <span id="vp1Bet">—</span> CR
+        </div>
+
+        <div id="vp1Cards" class="cards"></div>
+
+        <div id="vp1Total" class="hand-total">
+          —
+        </div>
+
+        <div id="vp1Status" class="player-status">
+          Waiting
+        </div>
+      </div>
+
+
+      <div class="player-seat" id="virtualPlayer2">
+        <div class="seat-label">
+          🤖 MIKE
+        </div>
+
+        <div class="player-bet">
+          Bet: <span id="vp2Bet">—</span> CR
+        </div>
+
+        <div id="vp2Cards" class="cards"></div>
+
+        <div id="vp2Total" class="hand-total">
+          —
+        </div>
+
+        <div id="vp2Status" class="player-status">
+          Waiting
+        </div>
+      </div>
+
+
+      <div class="player-seat" id="virtualPlayer3">
+        <div class="seat-label">
+          🤖 SARAH
+        </div>
+
+        <div class="player-bet">
+          Bet: <span id="vp3Bet">—</span> CR
+        </div>
+
+        <div id="vp3Cards" class="cards"></div>
+
+        <div id="vp3Total" class="hand-total">
+          —
+        </div>
+
+        <div id="vp3Status" class="player-status">
+          Waiting
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- USER -->
+
+    <div class="you-seat">
+
+      <div class="seat-label">
+        🧑 YOU
+      </div>
+
+      <div id="yourCards" class="cards"></div>
+
+      <div id="yourTotal" class="hand-total">
+        Total: —
+      </div>
+
+      <div id="blackjackStatus" class="blackjack-status">
+        Place your bet to start.
+      </div>
+
+    </div>
+
+
+    <!-- CONTROLS -->
+
+    <div class="blackjack-controls">
+
+      <div class="bet-area">
+
+        <label for="blackjackBet">
+          YOUR BET
+        </label>
+
         <input
           id="blackjackBet"
           type="number"
           min="10"
           max="500"
           step="10"
-          value="10"
+          value="50"
         >
-      </label>
 
-      <button
-        id="dealButton"
-        class="gold-button"
-        onclick="dealBlackjack()"
-      >
-        DEAL
-      </button>
+      </div>
 
-      <button
-        id="hitButton"
-        class="dark-button"
-        onclick="hitBlackjack()"
-        disabled
-      >
-        HIT
-      </button>
+      <div class="action-buttons">
 
-      <button
-        id="standButton"
-        class="dark-button"
-        onclick="standBlackjack()"
-        disabled
-      >
-        STAND
-      </button>
+        <button id="dealButton" class="gold-button">
+          DEAL
+        </button>
+
+        <button id="hitButton" class="action-button" disabled>
+          HIT
+        </button>
+
+        <button id="standButton" class="action-button" disabled>
+          STAND
+        </button>
+
+        <button id="doubleButton" class="action-button" disabled>
+          DOUBLE
+        </button>
+
+      </div>
 
     </div>
-
-    <p id="blackjackResult" class="result">
-      Deal a hand to start.
-    </p>
 
   </div>
 
-
-  <!-- ROULETTE -->
-
-  <div id="roulettePanel" class="game-panel hidden">
-
-    <h2>🎡 Roulette</h2>
-
-    <div id="rouletteWheel" class="roulette-wheel">
-      <span id="rouletteNumber">0</span>
-    </div>
+</div>
 
 
-    <div class="roulette-buttons">
+<!-- ROULETTE -->
 
-      <button
-        class="choice red"
-        onclick="selectRoulette('red')"
-      >
-        🔴 RED
-      </button>
+<div class="game-panel" id="roulettePanel">
 
-      <button
-        class="choice black"
-        onclick="selectRoulette('black')"
-      >
-        ⚫ BLACK
-      </button>
-
-      <button
-        class="choice green"
-        onclick="selectRoulette('green')"
-      >
-        🟢 0
-      </button>
-
-    </div>
-
-
-    <div id="numberGrid" class="number-grid"></div>
-
-
-    <div class="bet-row">
-
-      <label>
-        BET
-        <input
-          id="rouletteBet"
-          type="number"
-          min="10"
-          max="500"
-          step="10"
-          value="10"
-        >
-      </label>
-
-      <button
-        class="gold-button"
-        onclick="playRoulette()"
-      >
-        SPIN WHEEL
-      </button>
-
-    </div>
-
-    <p id="rouletteResult" class="result">
-      Choose a color or number.
-    </p>
-
-  </div>
-
-
-  <!-- DICE -->
-
-  <div id="dicePanel" class="game-panel hidden">
-
-    <h2>🎲 High / Low Dice</h2>
-
-    <div id="dice" class="big-dice">
-      ⚄
-    </div>
-
-
-    <div class="choice-row">
-
-      <button
-        class="choice"
-        onclick="playDice('low')"
-      >
-        LOW
-        <small>1–3</small>
-      </button>
-
-      <button
-        class="choice"
-        onclick="playDice('high')"
-      >
-        HIGH
-        <small>4–6</small>
-      </button>
-
-    </div>
-
-
-    <div class="bet-row">
-
-      <label>
-        BET
-        <input
-          id="diceBet"
-          type="number"
-          min="10"
-          max="500"
-          step="10"
-          value="10"
-        >
-      </label>
-
-    </div>
-
-    <p id="diceResult" class="result">
-      Pick high or low, then roll.
-    </p>
-
-  </div>
-
-</section>
-
-
-<section id="activity" class="section">
-
-  <div class="section-heading">
-
+  <div class="panel-title">
+    <span>🎡</span>
     <div>
-      <span class="eyebrow">📜 ACTIVITY</span>
-      <h2>Recent Games</h2>
-      <p>Your virtual-credit history.</p>
+      <h2>Roulette</h2>
+      <p>Choose a number or color.</p>
     </div>
+  </div>
 
-    <button class="back-button" onclick="clearHistory()">
-      Clear
+  <div class="roulette-result" id="rouletteResult">
+    —
+  </div>
+
+  <input
+    id="rouletteBet"
+    type="number"
+    min="10"
+    max="500"
+    step="10"
+    value="50"
+  >
+
+  <div class="roulette-buttons">
+
+    <button data-roulette="red">RED</button>
+    <button data-roulette="black">BLACK</button>
+    <button data-roulette="green">GREEN</button>
+
+  </div>
+
+  <div id="numberGrid" class="number-grid"></div>
+
+  <div id="rouletteMessage" class="result"></div>
+
+</div>
+
+
+<!-- DICE -->
+
+<div class="game-panel" id="dicePanel">
+
+  <div class="panel-title">
+    <span>🎲</span>
+    <div>
+      <h2>High / Low Dice</h2>
+      <p>Roll a six-sided die.</p>
+    </div>
+  </div>
+
+  <div id="diceDisplay" class="big-dice">
+    🎲
+  </div>
+
+  <input
+    id="diceBet"
+    type="number"
+    min="10"
+    max="500"
+    step="10"
+    value="50"
+  >
+
+  <div class="dice-buttons">
+
+    <button class="gold-button" data-dice="low">
+      LOW 1–3
+    </button>
+
+    <button class="gold-button" data-dice="high">
+      HIGH 4–6
     </button>
 
   </div>
 
+  <div id="diceResult" class="result"></div>
+
+</div>
+
+</section>
+
+
+<!-- ACTIVITY -->
+
+<section class="activity" id="activity">
+
+  <div class="section-heading">
+    <p class="eyebrow">📜 ACTIVITY</p>
+    <h2>Game History</h2>
+  </div>
 
   <div id="historyList" class="history-list">
-    <div class="empty">
+    <p class="empty-history">
       No games played yet.
-    </div>
+    </p>
   </div>
+
+  <button id="clearHistory" class="secondary-button">
+    CLEAR HISTORY
+  </button>
 
 </section>
 
@@ -418,12 +392,11 @@
 
   <p>
     This website uses virtual credits only.
-    Virtual credits have no cash value.
-    No deposits, withdrawals, or real-money prizes are available.
+    There are no deposits, withdrawals or cash prizes.
   </p>
 
-  <button onclick="resetCredits()">
-    RESET TO 1,000 CREDITS
+  <button id="resetCredits" class="secondary-button">
+    RESET 1,000 CREDITS
   </button>
 
 </section>
@@ -432,12 +405,9 @@
 
 
 <footer>
-  <strong>♠ LUCKY LOUNGE</strong>
-  <p>Play-money casino demonstration.</p>
+  <p>♠ Lucky Lounge</p>
+  <p>Play-money casino demonstration</p>
 </footer>
-
-
-<div id="toast" class="toast"></div>
 
 
 <script src="app.js"></script>
