@@ -1,38 +1,225 @@
-LUCKY LOUNGE
-Balance: 1,000 credits
-PLAY MONEY DEMO
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-Have fun. Play responsibly.
+  <title>Lucky Lounge</title>
 
-This is a browser-only casino demo using virtual credits. Credits have no cash value and cannot be deposited or withdrawn.
+  <link rel="stylesheet" href="style.css">
+</head>
 
-Play now  Reset credits
-GAME 01
+<body>
 
-Lucky Slots
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-icon">♠</span>
+      <span>LUCKY LOUNGE</span>
+    </div>
 
-Virtual
-🍒
-🍋
-⭐
-Bet    Spin
-Match 3 symbols for the biggest demo payout.
+    <div class="balance-box">
+      Balance:
+      <strong id="balance">1,000</strong>
+      credits
+    </div>
+  </header>
 
-GAME 02
 
-High / Low Dice
+  <main>
 
-Virtual
-🎲
-Bet  
-Low (1–3)  High (4–6)
-Pick high or low, then roll.
+    <section class="hero">
+      <div class="hero-content">
+        <span class="badge">PLAY MONEY DEMO</span>
 
-ACTIVITY
+        <h1>Welcome to Lucky Lounge</h1>
 
-Game history
+        <p>
+          A casino-style gaming experience using virtual credits.
+          No real money is involved.
+        </p>
 
-Clear
-No games played yet.
+        <div class="hero-buttons">
+          <a href="#games" class="btn primary">Play Now</a>
+          <button class="btn secondary" onclick="resetCredits()">
+            Reset Credits
+          </button>
+        </div>
+      </div>
+    </section>
 
-Lucky Lounge is a demonstration website. No real money, prizes, deposits, or withdrawals are supported.
+
+    <section id="games" class="games-section">
+
+      <div class="section-title">
+        <span>🎰</span>
+        <div>
+          <h2>Games</h2>
+          <p>Choose a game and try your luck.</p>
+        </div>
+      </div>
+
+
+      <!-- SLOTS -->
+
+      <div class="game-card">
+
+        <div class="game-header">
+          <div>
+            <span class="game-number">GAME 01</span>
+            <h3>Lucky Slots</h3>
+          </div>
+
+          <span class="virtual-badge">Virtual</span>
+        </div>
+
+
+        <div class="slot-machine">
+
+          <div class="slot" id="slot1">🍒</div>
+          <div class="slot" id="slot2">🍋</div>
+          <div class="slot" id="slot3">⭐</div>
+
+        </div>
+
+
+        <div class="game-controls">
+
+          <label for="slotBet">Bet</label>
+
+          <input
+            id="slotBet"
+            type="number"
+            min="10"
+            max="500"
+            step="10"
+            value="10"
+          >
+
+          <button class="play-button" onclick="playSlots()">
+            SPIN
+          </button>
+
+        </div>
+
+
+        <p id="slotResult" class="game-result">
+          Match 3 symbols for the biggest demo payout.
+        </p>
+
+      </div>
+
+
+
+      <!-- DICE -->
+
+      <div class="game-card">
+
+        <div class="game-header">
+          <div>
+            <span class="game-number">GAME 02</span>
+            <h3>High / Low Dice</h3>
+          </div>
+
+          <span class="virtual-badge">Virtual</span>
+        </div>
+
+
+        <div class="dice-display" id="dice">
+          🎲
+        </div>
+
+
+        <div class="game-controls">
+
+          <label for="diceBet">Bet</label>
+
+          <input
+            id="diceBet"
+            type="number"
+            min="10"
+            max="500"
+            step="10"
+            value="10"
+          >
+
+        </div>
+
+
+        <div class="dice-buttons">
+
+          <button
+            class="play-button"
+            onclick="playDice('low')"
+          >
+            LOW
+            <small>1–3</small>
+          </button>
+
+          <button
+            class="play-button"
+            onclick="playDice('high')"
+          >
+            HIGH
+            <small>4–6</small>
+          </button>
+
+        </div>
+
+
+        <p id="diceResult" class="game-result">
+          Pick high or low, then roll.
+        </p>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- HISTORY -->
+
+    <section class="history-section">
+
+      <div class="section-title">
+        <span>📜</span>
+
+        <div>
+          <h2>Activity</h2>
+          <p>Game history</p>
+        </div>
+
+        <button
+          class="clear-button"
+          onclick="clearHistory()"
+        >
+          Clear
+        </button>
+      </div>
+
+
+      <div id="historyList" class="history-list">
+        <p>No games played yet.</p>
+      </div>
+
+    </section>
+
+
+  </main>
+
+
+  <footer>
+
+    <strong>Lucky Lounge</strong>
+
+    <p>
+      This is a demonstration website using virtual credits only.
+      No real money, prizes, deposits, or withdrawals are supported.
+    </p>
+
+  </footer>
+
+
+  <script src="app.js"></script>
+
+</body>
+</html>
