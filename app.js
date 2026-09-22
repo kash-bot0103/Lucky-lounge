@@ -1,11 +1,465 @@
-let balance=Number(localStorage.getItem("luckyBalance"));if(!Number.isFinite(balance))balance=1000;let history=JSON.parse(localStorage.getItem("luckyHistory")||"[]");const balanceEl=document.getElementById("balance");function saveState(){localStorage.setItem("luckyBalance",String(balance));localStorage.setItem("luckyHistory",JSON.stringify(history))}function renderBalance(){balanceEl.textContent=`${Math.max(0,Math.floor(balance)).toLocaleString()} CR`}function changeBalance(a){balance+=a;if(balance<0)balance=0;saveState();renderBalance()}function addHistory(game,result,amount,type=""){history.unshift({game,result,amount,type,time:new Date().toLocaleTimeString()});history=history.slice(0,30);saveState();renderHistory()}function renderHistory(){const c=document.getElementById("historyList");if(!history.length){c.innerHTML='<p class="empty-history">No games played yet.</p>';return}c.innerHTML=history.map(i=>`<div class="history-item"><div><strong>${i.game}</strong><br><small>${i.result} • ${i.time}</small></div><strong class="${i.type}">${i.amount>=0?"+":""}${i.amount} CR</strong></div>`).join("")}const panels={slots:document.getElementById("slotsPanel"),blackjack:document.getElementById("blackjackPanel"),roulette:document.getElementById("roulettePanel"),dice:document.getElementById("dicePanel")};function openGame(g){Object.values(panels).forEach(p=>p.classList.remove("active"));panels[g].classList.add("active");panels[g].scrollIntoView({behavior:"smooth",block:"start"})}document.querySelectorAll(".game-card").forEach(b=>b.addEventListener("click",()=>openGame(b.dataset.game)));function validBet(b){if(!Number.isFinite(b)||b<10||b>500||b%10!==0){alert("Bet must be 10–500 credits in increments of 10.");return false}if(balance<b){alert("Not enough credits.");return false}return true}
+// ==========================================
+// LUCKY LOUNGE - PLAY MONEY CASINO
+// ==========================================
 
-const symbols=["🍒","🍋","⭐","💎","7️⃣"];function randomSymbol(){return symbols[Math.floor(Math.random()*symbols.length)]}document.getElementById("spinButton").addEventListener("click",()=>{const b=Number(document.getElementById("slotBet").value);if(!validBet(b))return;changeBalance(-b);const r=[randomSymbol(),randomSymbol(),randomSymbol()];r.forEach((x,i)=>document.getElementById(`slot${i+1}`).textContent=x);let p=0,m="No match",t="loss";if(r.every(x=>x==="7️⃣")){p=b*8;m="JACKPOT! Three 7s!";t="win"}else if(r[0]===r[1]&&r[1]===r[2]){p=b*5;m="Three of a kind!";t="win"}else if(r[0]===r[1]||r[1]===r[2]||r[0]===r[2]){p=b*2;m="Pair!";t="win"}if(p)changeBalance(p);document.getElementById("slotResult").textContent=`${m} ${p-b>=0?"+":""}${p-b} CR`;addHistory("Slots",m,p-b,t)});
+let balance = Number(localStorage.getItem("luckyBalance")) || 1000;
+let history = JSON.parse(localStorage.getItem("luckyHistory")) || [];
 
-let deck=[],dealer=[],player=[],bjBet=0,active=false;const players=[{name:"Alex",bet:0,hand:[],status:"Waiting"},{name:"Mike",bet:0,hand:[],status:"Waiting"},{name:"Sarah",bet:0,hand:[],status:"Waiting"}];const suits=[["♠",false],["♥",true],["♦",true],["♣",false]],ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];function makeDeck(){let d=[];suits.forEach(s=>ranks.forEach(r=>d.push({rank:r,suit:s[0],red:s[1]})));return d.sort(()=>Math.random()-.5)}function draw(){if(!deck.length)deck=makeDeck();return deck.pop()}function value(c){return["J","Q","K"].includes(c.rank)?10:c.rank==="A"?11:Number(c.rank)}function total(h){let t=h.reduce((a,c)=>a+value(c),0),a=h.filter(c=>c.rank==="A").length;while(t>21&&a-- >0)t-=10;return t}function natural(h){return h.length===2&&total(h)===21}function card(c,hide=false){return hide?'<div class="card hidden">?</div>':`<div class="card ${c.red?"red":""}"><span>${c.rank}</span><span class="suit">${c.suit}</span></div>`}function renderHand(id,h,hide=false){document.getElementById(id).innerHTML=h.map((c,i)=>card(c,hide&&i===1)).join("")}function renderBJ(hide=true){renderHand("dealerCards",dealer,hide&&active);renderHand("yourCards",player);document.getElementById("yourTotal").textContent=`Total: ${total(player)}`;document.getElementById("dealerTotal").textContent=hide&&active?`Total: ${value(dealer[0])} + ?`:`Total: ${total(dealer)}`}function renderVP(i){const p=players[i];document.getElementById(`vp${i+1}Cards`).innerHTML=p.hand.map(c=>card(c)).join("");document.getElementById(`vp${i+1}Total`).textContent=p.hand.length?`Total: ${total(p.hand)}`:"—";document.getElementById(`vp${i+1}Bet`).textContent=p.bet||"—";document.getElementById(`vp${i+1}Status`).textContent=p.status}function renderVPs(){players.forEach((_,i)=>renderVP(i))}function virtualTurn(){players.forEach((p,i)=>{p.bet=[20,30,40,50,75,100][Math.floor(Math.random()*6)];p.hand=[draw(),draw()];p.status="Playing";while(total(p.hand)<16)p.hand.push(draw());p.status=total(p.hand)>21?"BUST":total(p.hand)===21?"21!":"STANDS";renderVP(i)})}function msg(t){document.getElementById("blackjackStatus").textContent=t}function startBJ(){if(active)return;const b=Number(document.getElementById("blackjackBet").value);if(!validBet(b))return;bjBet=b;changeBalance(-b);deck=makeDeck();dealer=[draw(),draw()];player=[draw(),draw()];active=true;document.getElementById("dealButton").disabled=true;document.getElementById("hitButton").disabled=false;document.getElementById("standButton").disabled=false;document.getElementById("doubleButton").disabled=balance<b;msg("Your turn.");virtualTurn();renderBJ(true);if(natural(player))finishBJ("blackjack")}document.getElementById("dealButton").addEventListener("click",startBJ);document.getElementById("hitButton").addEventListener("click",()=>{if(!active)return;player.push(draw());renderBJ(true);if(total(player)>21)finishBJ("bust");else if(total(player)===21)finishBJ("stand");else msg(`You have ${total(player)}. Hit or stand?`)});document.getElementById("standButton").addEventListener("click",()=>finishBJ("stand"));document.getElementById("doubleButton").addEventListener("click",()=>{if(!active||player.length!==2)return;if(balance<bjBet){msg("Not enough credits to double.");return}changeBalance(-bjBet);bjBet*=2;player.push(draw());renderBJ(true);finishBJ(total(player)>21?"bust":"stand")});function finishBJ(reason){if(!active)return;active=false;document.getElementById("hitButton").disabled=true;document.getElementById("standButton").disabled=true;document.getElementById("doubleButton").disabled=true;while(total(dealer)<17)dealer.push(draw());renderBJ(false);const pt=total(player),dt=total(dealer);let p=0,r="",t="loss";if(reason==="bust"||pt>21)r=`You bust with ${pt}. Dealer wins.`;else if(natural(player)&&!natural(dealer)){p=bjBet*2.5;r="BLACKJACK! You win!";t="win"}else if(natural(dealer)&&!natural(player))r="Dealer has Blackjack.";else if(dt>21){p=bjBet*2;r=`Dealer busts with ${dt}. You win!`;t="win"}else if(pt>dt){p=bjBet*2;r=`You win ${pt} to ${dt}!`;t="win"}else if(pt===dt){p=bjBet;r=`Push — both have ${pt}.`;t="push"}else r=`Dealer wins ${dt} to ${pt}.`;if(p)changeBalance(p);msg(`${r} ${p-bjBet>=0?"+":""}${p-bjBet} CR`);addHistory("Blackjack",r,p-bjBet,t);players.forEach((q,i)=>{const x=total(q.hand);q.status=x>21?"BUST":dt>21?"WIN":x>dt?"WIN":x===dt?"PUSH":"LOSE";renderVP(i)});document.getElementById("dealButton").disabled=false)}
+const balanceEl = document.getElementById("balance");
 
-const reds=[1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];function rcolor(n){return n===0?"green":reds.includes(n)?"red":"black"}for(let n=0;n<=36;n++){const b=document.createElement("button");b.textContent=n;b.addEventListener("click",()=>roulette(n));document.getElementById("numberGrid").appendChild(b)}document.querySelectorAll("[data-roulette]").forEach(b=>b.addEventListener("click",()=>roulette(b.dataset.roulette)));function roulette(choice){const b=Number(document.getElementById("rouletteBet").value);if(!validBet(b))return;changeBalance(-b);const n=Math.floor(Math.random()*37),c=rcolor(n);let p=0,m=`Result: ${n} ${c}`,t="loss";if(typeof choice==="number"&&n===choice){p=b*35;m+=" — Exact number WIN!";t="win"}else if(typeof choice==="string"&&choice===c){p=c==="green"?b*14:b*2;m+=" — WIN!";t="win"}if(p)changeBalance(p);document.getElementById("rouletteResult").textContent=n;document.getElementById("rouletteMessage").textContent=`${m} ${p-b>=0?"+":""}${p-b} CR`;addHistory("Roulette",m,p-b,t)}
+// ==========================================
+// BALANCE
+// ==========================================
 
-document.querySelectorAll("[data-dice]").forEach(b=>b.addEventListener("click",()=>{const bet=Number(document.getElementById("diceBet").value);if(!validBet(bet))return;changeBalance(-bet);const roll=Math.floor(Math.random()*6)+1,won=b.dataset.dice==="low"?roll<=3:roll>=4,p=won?bet*2:0;if(p)changeBalance(p);document.getElementById("diceDisplay").textContent=["⚀","⚁","⚂","⚃","⚄","⚅"][roll-1];document.getElementById("diceResult").textContent=`You rolled ${roll}. ${won?"You win!":"You lose."} ${p-bet>=0?"+":""}${p-bet} CR`;addHistory("Dice",`Rolled ${roll}`,p-bet,won?"win":"loss")}));
+function updateBalance() {
+  balanceEl.textContent = `${balance.toLocaleString()} CR`;
+  localStorage.setItem("luckyBalance", balance);
+}
 
-document.getElementById("clearHistory").addEventListener("click",()=>{history=[];saveState();renderHistory()});document.getElementById("resetCredits").addEventListener("click",()=>{balance=1000;history=[];saveState();renderBalance();renderHistory();alert("Your virtual credits were reset to 1,000.")});renderBalance();renderHistory();renderVPs();
+function addHistory(game, result, amount) {
+  history.unshift({
+    game,
+    result,
+    amount,
+    time: new Date().toLocaleString()
+  });
+
+  history = history.slice(0, 50);
+
+  localStorage.setItem("luckyHistory", JSON.stringify(history));
+
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById("historyList");
+
+  if (!history.length) {
+    list.innerHTML = `
+      <p class="empty-history">
+        No games played yet.
+      </p>
+    `;
+    return;
+  }
+
+  list.innerHTML = history.map(item => `
+    <div class="history-item">
+      <div>
+        <strong>${item.game}</strong>
+        <br>
+        <small>${item.time}</small>
+      </div>
+
+      <div class="${item.amount > 0 ? "win" : item.amount < 0 ? "loss" : "push"}">
+        ${item.amount > 0 ? "+" : ""}
+        ${item.amount} CR
+        <br>
+        <small>${item.result}</small>
+      </div>
+    </div>
+  `).join("");
+}
+
+updateBalance();
+renderHistory();
+
+
+// ==========================================
+// GAME CARD NAVIGATION
+// ==========================================
+
+const gameCards = document.querySelectorAll(".game-card");
+
+const panels = {
+  slots: document.getElementById("slotsPanel"),
+  blackjack: document.getElementById("blackjackPanel"),
+  roulette: document.getElementById("roulettePanel"),
+  dice: document.getElementById("dicePanel")
+};
+
+gameCards.forEach(card => {
+
+  card.addEventListener("click", () => {
+
+    const game = card.dataset.game;
+
+    Object.values(panels).forEach(panel => {
+      panel.classList.remove("active");
+    });
+
+    if (panels[game]) {
+      panels[game].classList.add("active");
+
+      panels[game].scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+
+  });
+
+});
+
+
+// ==========================================
+// SLOTS
+// ==========================================
+
+const slotSymbols = [
+  "🍒",
+  "🍋",
+  "⭐",
+  "💎",
+  "7️⃣"
+];
+
+const spinButton = document.getElementById("spinButton");
+
+spinButton.addEventListener("click", () => {
+
+  const bet = Number(document.getElementById("slotBet").value);
+
+  if (!validBet(bet)) return;
+
+  if (balance < bet) {
+    showMessage("slotResult", "Not enough credits.");
+    return;
+  }
+
+  balance -= bet;
+
+  const a = randomItem(slotSymbols);
+  const b = randomItem(slotSymbols);
+  const c = randomItem(slotSymbols);
+
+  document.getElementById("slot1").textContent = a;
+  document.getElementById("slot2").textContent = b;
+  document.getElementById("slot3").textContent = c;
+
+  let winnings = 0;
+
+  if (a === "7️⃣" && b === "7️⃣" && c === "7️⃣") {
+    winnings = bet * 8;
+  }
+  else if (a === b && b === c) {
+    winnings = bet * 5;
+  }
+  else if (a === b || a === c || b === c) {
+    winnings = bet * 2;
+  }
+
+  balance += winnings;
+
+  const net = winnings - bet;
+
+  if (winnings > 0) {
+    showMessage(
+      "slotResult",
+      `WIN! You received ${winnings} CR.`
+    );
+  } else {
+    showMessage(
+      "slotResult",
+      `No match. You lost ${bet} CR.`
+    );
+  }
+
+  addHistory(
+    "Lucky Slots",
+    winnings > 0 ? "WIN" : "LOSS",
+    net
+  );
+
+  updateBalance();
+
+});
+
+
+// ==========================================
+// BLACKJACK
+// ==========================================
+
+let deck = [];
+let playerHand = [];
+let dealerHand = [];
+
+let bjBet = 0;
+let bjActive = false;
+let bjFinished = false;
+
+
+// Virtual players
+const virtualPlayers = [
+  {
+    name: "ALEX",
+    cards: [],
+    bet: 0
+  },
+  {
+    name: "MIKE",
+    cards: [],
+    bet: 0
+  },
+  {
+    name: "SARAH",
+    cards: [],
+    bet: 0
+  }
+];
+
+
+// Create standard 52-card deck
+function createDeck() {
+
+  const suits = [
+    {
+      symbol: "♥",
+      name: "red"
+    },
+    {
+      symbol: "♦",
+      name: "red"
+    },
+    {
+      symbol: "♣",
+      name: "black"
+    },
+    {
+      symbol: "♠",
+      name: "black"
+    }
+  ];
+
+  const ranks = [
+    "A",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "J",
+    "Q",
+    "K"
+  ];
+
+  deck = [];
+
+  suits.forEach(suit => {
+
+    ranks.forEach(rank => {
+
+      deck.push({
+        rank,
+        suit: suit.symbol,
+        color: suit.name
+      });
+
+    });
+
+  });
+
+  shuffle(deck);
+}
+
+
+// Shuffle deck
+function shuffle(array) {
+
+  for (let i = array.length - 1; i > 0; i--) {
+
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [array[i], array[j]] =
+      [array[j], array[i]];
+
+  }
+
+}
+
+
+// Deal one card
+function drawCard() {
+
+  if (!deck.length) {
+    createDeck();
+  }
+
+  return deck.pop();
+
+}
+
+
+// Calculate blackjack hand
+function handValue(hand) {
+
+  let total = 0;
+  let aces = 0;
+
+  hand.forEach(card => {
+
+    if (card.rank === "A") {
+
+      total += 11;
+      aces++;
+
+    }
+    else if (
+      card.rank === "K" ||
+      card.rank === "Q" ||
+      card.rank === "J"
+    ) {
+
+      total += 10;
+
+    }
+    else {
+
+      total += Number(card.rank);
+
+    }
+
+  });
+
+  while (total > 21 && aces > 0) {
+
+    total -= 10;
+    aces--;
+
+  }
+
+  return total;
+
+}
+
+
+// Render a card
+function cardHTML(card, hidden = false) {
+
+  if (hidden) {
+
+    return `
+      <div class="card hidden"></div>
+    `;
+
+  }
+
+  const red =
+    card.color === "red"
+      ? "red"
+      : "";
+
+  return `
+    <div class="card ${red}">
+      <span>${card.rank}</span>
+      <span class="suit">${card.suit}</span>
+    </div>
+  `;
+
+}
+
+
+// Render hand
+function renderHand(elementId, hand, hideFirst = false) {
+
+  const element =
+    document.getElementById(elementId);
+
+  element.innerHTML = hand.map(
+    (card, index) =>
+      cardHTML(
+        card,
+        hideFirst && index === 0
+      )
+  ).join("");
+
+}
+
+
+// DEAL
+document
+  .getElementById("dealButton")
+  .addEventListener("click", dealBlackjack);
+
+
+function dealBlackjack() {
+
+  if (bjActive) return;
+
+  const bet =
+    Number(
+      document.getElementById("blackjackBet").value
+    );
+
+  if (!validBet(bet)) return;
+
+  if (balance < bet) {
+
+    setBlackjackStatus(
+      "Not enough credits."
+    );
+
+    return;
+
+  }
+
+  balance -= bet;
+
+  bjBet = bet;
+
+  bjActive = true;
+  bjFinished = false;
+
+  createDeck();
+
+  playerHand = [
+    drawCard(),
+    drawCard()
+  ];
+
+  dealerHand = [
+    drawCard(),
+    drawCard()
+  ];
+
+  // Virtual players
+  virtualPlayers.forEach(player => {
+
+    player.bet = randomItem([
+      20,
+      30,
+      40,
+      50,
+      75,
+      100
+    ]);
+
+    player.cards = [
+      drawCard(),
+      drawCard()
+    ];
+
+  });
+
+
+  renderBlackjack();
+
+  document.getElementById("hitButton").disabled = false;
+  document.getElementById("standButton").disabled = false;
+  document.getElementById("doubleButton").disabled = false;
+
+  setBlackjackStatus(
+    "Your turn — choose HIT, STAND or DOUBLE."
+  );
+
+  updateBalance();
+
+
+  // Natural blackjack
+  if (handValue(playerHand) === 21) {
+
+   
