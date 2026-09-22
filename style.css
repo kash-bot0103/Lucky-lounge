@@ -152,7 +152,7 @@ main {
   margin-top: 20px;
 }
 
-/* GAME SECTION */
+/* GAMES */
 
 .games-section,
 .activity {
@@ -611,6 +611,7 @@ footer {
 /* TABLET */
 
 @media (max-width: 850px) {
+
   .game-cards {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -622,11 +623,13 @@ footer {
   .player-seat {
     min-height: 150px;
   }
+
 }
 
 /* PHONE */
 
 @media (max-width: 600px) {
+
   .topbar {
     padding: 12px 15px;
   }
@@ -673,4 +676,5 @@ footer {
     width: 48px;
     height: 70px;
   }
+
 }
