@@ -1,11 +1,14 @@
-const STARTING_BALANCE = 1000;
+"use strict";
 
-let balance = Number(
-  localStorage.getItem("luckyBalance")
-);
+/* =========================
+   LUCKY LOUNGE
+   PLAY-MONEY CASINO
+========================= */
+
+let balance = Number(localStorage.getItem("luckyBalance"));
 
 if (!Number.isFinite(balance)) {
-  balance = STARTING_BALANCE;
+  balance = 1000;
 }
 
 let history = JSON.parse(
@@ -13,237 +16,78 @@ let history = JSON.parse(
 );
 
 
-const symbols = [
-  "🍒",
-  "🍋",
-  "⭐",
-  "💎",
-  "7️⃣"
-];
+/* =========================
+   GENERAL
+========================= */
 
-const diceFaces = [
-  "⚀",
-  "⚁",
-  "⚂",
-  "⚃",
-  "⚄",
-  "⚅"
-];
+const balanceEl = document.getElementById("balance");
 
-
-let blackjack = {
-  active: false,
-  player: [],
-  dealer: [],
-  bet: 0
-};
-
-
-let deck = [];
-
-let rouletteChoice = null;
-
-
-function $(id) {
-  return document.getElementById(id);
+function saveState() {
+  localStorage.setItem("luckyBalance", String(balance));
+  localStorage.setItem("luckyHistory", JSON.stringify(history));
 }
-
-
-function saveData() {
-
-  localStorage.setItem(
-    "luckyBalance",
-    String(balance)
-  );
-
-  localStorage.setItem(
-    "luckyHistory",
-    JSON.stringify(history)
-  );
-}
-
-
-function formatCredits(number) {
-
-  return Math.round(number).toLocaleString();
-}
-
 
 function renderBalance() {
-
-  $("balance").textContent =
-    formatCredits(balance);
+  balanceEl.textContent =
+    `${Math.max(0, Math.floor(balance)).toLocaleString()} CR`;
 }
 
-
 function changeBalance(amount) {
-
   balance += amount;
 
   if (balance < 0) {
     balance = 0;
   }
 
+  saveState();
   renderBalance();
-
-  saveData();
 }
 
-
-function showToast(message) {
-
-  const toast = $("toast");
-
-  toast.textContent = message;
-
-  toast.classList.add("show");
-
-  clearTimeout(showToast.timer);
-
-  showToast.timer = setTimeout(() => {
-
-    toast.classList.remove("show");
-
-  }, 2200);
-}
-
-
-function setResult(
-  element,
-  message,
-  type = ""
-) {
-
-  element.textContent = message;
-
-  element.className =
-    "result " + type;
-}
-
-
-function addHistory(
-  game,
-  amount,
-  detail,
-  icon
-) {
+function addHistory(game, result, amount, type = "") {
 
   history.unshift({
-
-    game: game,
-
-    amount: amount,
-
-    detail: detail,
-
-    icon: icon,
-
-    time: new Date().toLocaleTimeString(
-      [],
-      {
-        hour: "2-digit",
-        minute: "2-digit"
-      }
-    )
-
+    game,
+    result,
+    amount,
+    type,
+    time: new Date().toLocaleTimeString()
   });
 
-  history =
-    history.slice(0, 20);
+  history = history.slice(0, 30);
 
-  saveData();
-
+  saveState();
   renderHistory();
 }
 
-
 function renderHistory() {
 
-  const list =
-    $("historyList");
+  const container = document.getElementById("historyList");
 
   if (!history.length) {
-
-    list.innerHTML =
-      '<div class="empty">No games played yet.</div>';
-
+    container.innerHTML =
+      `<p class="empty-history">No games played yet.</p>`;
     return;
   }
 
+  container.innerHTML = history.map(item => {
 
-  list.innerHTML =
-    history.map(item => {
+    const sign = item.amount >= 0 ? "+" : "";
 
-      const positive =
-        item.amount >= 0;
-
-      return `
-        <div class="history-row">
-
-          <div class="history-icon">
-            ${item.icon}
-          </div>
-
-          <div class="history-main">
-
-            <strong>
-              ${item.game}
-            </strong>
-
-            <small>
-              ${item.detail}
-              ·
-              ${item.time}
-            </small>
-
-          </div>
-
-          <div class="history-amount ${positive ? "win" : "loss"}">
-
-            ${positive ? "+" : "-"}
-            ${formatCredits(Math.abs(item.amount))}
-            CR
-
-          </div>
-
+    return `
+      <div class="history-item">
+        <div>
+          <strong>${item.game}</strong>
+          <br>
+          <small>${item.result} • ${item.time}</small>
         </div>
-      `;
 
-    }).join("");
-}
+        <strong class="${item.type}">
+          ${sign}${item.amount} CR
+        </strong>
+      </div>
+    `;
 
-
-function getBet(inputId) {
-
-  const bet =
-    Number($(inputId).value);
-
-  if (
-    !Number.isFinite(bet) ||
-    bet < 10 ||
-    bet > 500 ||
-    bet % 10 !== 0
-  ) {
-
-    showToast(
-      "Bet must be 10–500 credits."
-    );
-
-    return null;
-  }
-
-
-  if (bet > balance) {
-
-    showToast(
-      "Not enough virtual credits."
-    );
-
-    return null;
-  }
-
-
-  return bet;
+  }).join("");
 }
 
 
@@ -251,142 +95,68 @@ function getBet(inputId) {
    GAME NAVIGATION
 ========================= */
 
+const panels = {
+  slots: document.getElementById("slotsPanel"),
+  blackjack: document.getElementById("blackjackPanel"),
+  roulette: document.getElementById("roulettePanel"),
+  dice: document.getElementById("dicePanel")
+};
 
 function openGame(game) {
 
-  const area =
-    $("game-area");
-
-  area.classList.remove(
-    "hidden"
-  );
-
-
-  document.querySelectorAll(
-    ".game-panel"
-  ).forEach(panel => {
-
-    panel.classList.add(
-      "hidden"
-    );
-
+  Object.values(panels).forEach(panel => {
+    panel.classList.remove("active");
   });
 
-
-  const panel =
-    $(game + "Panel");
-
-  if (panel) {
-
-    panel.classList.remove(
-      "hidden"
-    );
-
-  }
-
-
-  const titles = {
-
-    slots: "🎰 Lucky Slots",
-
-    blackjack: "🃏 Blackjack",
-
-    roulette: "🎡 Roulette",
-
-    dice: "🎲 High / Low Dice"
-
-  };
-
-
-  $("gameTitle").textContent =
-    titles[game];
-
-
-  area.scrollIntoView({
-    behavior: "smooth"
-  });
-
-
-  if (game === "roulette") {
-
-    buildNumberGrid();
-
-  }
-
-}
-
-
-function closeGame() {
-
-  $("game-area")
-    .classList.add("hidden");
-
-  document
-    .getElementById("games")
-    .scrollIntoView({
-      behavior: "smooth"
+  if (panels[game]) {
+    panels[game].classList.add("active");
+    panels[game].scrollIntoView({
+      behavior: "smooth",
+      block: "start"
     });
+  }
 }
+
+document.querySelectorAll(".game-card").forEach(button => {
+
+  button.addEventListener("click", () => {
+    openGame(button.dataset.game);
+  });
+
+});
 
 
 /* =========================
    SLOTS
 ========================= */
 
+const symbols = ["🍒", "🍋", "⭐", "💎", "7️⃣"];
 
-function playSlots() {
+function randomSymbol() {
+  return symbols[Math.floor(Math.random() * symbols.length)];
+}
 
-  const bet =
-    getBet("slotBet");
+document.getElementById("spinButton").addEventListener("click", () => {
 
-  if (bet === null) {
-    return;
-  }
+  const bet = Number(document.getElementById("slotBet").value);
 
+  if (!validBet(bet)) return;
 
-  const reels = [
-    $("slot1"),
-    $("slot2"),
-    $("slot3")
+  changeBalance(-bet);
+
+  const result = [
+    randomSymbol(),
+    randomSymbol(),
+    randomSymbol()
   ];
 
-
-  reels.forEach(reel => {
-
-    reel.classList.remove(
-      "spin"
-    );
-
-    void reel.offsetWidth;
-
-    reel.classList.add(
-      "spin"
-    );
-
-  });
-
-
-  const result =
-    reels.map(reel => {
-
-      const symbol =
-        symbols[
-          Math.floor(
-            Math.random() *
-            symbols.length
-          )
-        ];
-
-      reel.textContent =
-        symbol;
-
-      return symbol;
-
-    });
-
+  document.getElementById("slot1").textContent = result[0];
+  document.getElementById("slot2").textContent = result[1];
+  document.getElementById("slot3").textContent = result[2];
 
   let payout = 0;
-
+  let message = "No match";
+  let type = "loss";
 
   if (
     result[0] === "7️⃣" &&
@@ -394,16 +164,18 @@ function playSlots() {
     result[2] === "7️⃣"
   ) {
 
-    payout =
-      bet * 8;
+    payout = bet * 8;
+    message = "JACKPOT! Three 7s!";
+    type = "win";
 
   } else if (
     result[0] === result[1] &&
     result[1] === result[2]
   ) {
 
-    payout =
-      bet * 5;
+    payout = bet * 5;
+    message = "Three of a kind!";
+    type = "win";
 
   } else if (
     result[0] === result[1] ||
@@ -411,485 +183,585 @@ function playSlots() {
     result[0] === result[2]
   ) {
 
-    payout =
-      bet * 2;
-
+    payout = bet * 2;
+    message = "Pair!";
+    type = "win";
   }
-
-
-  changeBalance(-bet);
-
 
   if (payout > 0) {
-
     changeBalance(payout);
-
-    setResult(
-      $("slotResult"),
-      `You won ${formatCredits(payout)} CR!`,
-      "win"
-    );
-
-    addHistory(
-      "Lucky Slots",
-      payout - bet,
-      `Bet ${bet} CR`,
-      "🎰"
-    );
-
-  } else {
-
-    setResult(
-      $("slotResult"),
-      `No match. You lost ${formatCredits(bet)} CR.`,
-      "loss"
-    );
-
-    addHistory(
-      "Lucky Slots",
-      -bet,
-      `Bet ${bet} CR`,
-      "🎰"
-    );
-
   }
 
-}
+  const net = payout - bet;
+
+  document.getElementById("slotResult").textContent =
+    `${message} ${net >= 0 ? "+" : ""}${net} CR`;
+
+  addHistory(
+    "Slots",
+    message,
+    net,
+    type
+  );
+});
 
 
 /* =========================
    BLACKJACK
 ========================= */
 
+let blackjackDeck = [];
+let dealerHand = [];
+let playerHand = [];
+
+let blackjackBet = 0;
+let blackjackActive = false;
+let playerHasDoubled = false;
+
+
+/* VIRTUAL PLAYERS */
+
+const virtualPlayers = [
+  {
+    name: "Alex",
+    bet: 0,
+    hand: [],
+    status: "Waiting"
+  },
+  {
+    name: "Mike",
+    bet: 0,
+    hand: [],
+    status: "Waiting"
+  },
+  {
+    name: "Sarah",
+    bet: 0,
+    hand: [],
+    status: "Waiting"
+  }
+];
+
+
+const suits = [
+  { symbol: "♠", red: false },
+  { symbol: "♥", red: true },
+  { symbol: "♦", red: true },
+  { symbol: "♣", red: false }
+];
+
+const ranks = [
+  "A", "2", "3", "4", "5", "6", "7",
+  "8", "9", "10", "J", "Q", "K"
+];
+
 
 function createDeck() {
 
-  const suits = [
-    "♠",
-    "♥",
-    "♦",
-    "♣"
-  ];
-
-  const ranks = [
-    ["A", 11],
-    ["2", 2],
-    ["3", 3],
-    ["4", 4],
-    ["5", 5],
-    ["6", 6],
-    ["7", 7],
-    ["8", 8],
-    ["9", 9],
-    ["10", 10],
-    ["J", 10],
-    ["Q", 10],
-    ["K", 10]
-  ];
-
-
-  const cards = [];
-
+  const deck = [];
 
   suits.forEach(suit => {
 
     ranks.forEach(rank => {
 
-      cards.push({
-
-        rank: rank[0],
-
-        value: rank[1],
-
-        suit: suit
-
+      deck.push({
+        rank,
+        suit: suit.symbol,
+        red: suit.red
       });
 
     });
 
   });
 
+  return deck.sort(() => Math.random() - 0.5);
+}
 
-  return cards.sort(
-    () => Math.random() - 0.5
-  );
 
+function drawCard() {
+
+  if (!blackjackDeck.length) {
+    blackjackDeck = createDeck();
+  }
+
+  return blackjackDeck.pop();
+}
+
+
+function cardValue(card) {
+
+  if (["J", "Q", "K"].includes(card.rank)) {
+    return 10;
+  }
+
+  if (card.rank === "A") {
+    return 11;
+  }
+
+  return Number(card.rank);
 }
 
 
 function handValue(hand) {
 
-  let total =
-    hand.reduce(
-      (sum, card) =>
-        sum + card.value,
-      0
-    );
+  let total = hand.reduce(
+    (sum, card) => sum + cardValue(card),
+    0
+  );
 
+  let aces = hand.filter(
+    card => card.rank === "A"
+  ).length;
 
-  let aces =
-    hand.filter(
-      card => card.rank === "A"
-    ).length;
-
-
-  while (
-    total > 21 &&
-    aces > 0
-  ) {
-
+  while (total > 21 && aces > 0) {
     total -= 10;
-
     aces--;
-
   }
-
 
   return total;
 }
 
 
-function renderCard(
-  card,
-  hidden = false
-) {
+function isBlackjack(hand) {
+  return hand.length === 2 && handValue(hand) === 21;
+}
+
+
+function renderCard(card, hidden = false) {
 
   if (hidden) {
-
-    return `
-      <div class="card hidden-card">
-        🂠
-      </div>
-    `;
-
+    return `<div class="card hidden">?</div>`;
   }
-
-
-  const red =
-    card.suit === "♥" ||
-    card.suit === "♦";
-
 
   return `
-    <div class="card ${red ? "red-card" : ""}">
-      ${card.rank}${card.suit}
+    <div class="card ${card.red ? "red" : ""}">
+      <span>${card.rank}</span>
+      <span class="suit">${card.suit}</span>
     </div>
   `;
+}
+
+
+function renderHand(elementId, hand, hideSecond = false) {
+
+  const element = document.getElementById(elementId);
+
+  element.innerHTML = hand.map(
+    (card, index) =>
+      renderCard(card, hideSecond && index === 1)
+  ).join("");
+}
+
+
+function renderBlackjackHands(hideDealer = true) {
+
+  renderHand(
+    "dealerCards",
+    dealerHand,
+    hideDealer && blackjackActive
+  );
+
+  renderHand("yourCards", playerHand);
+
+  document.getElementById("yourTotal").textContent =
+    `Total: ${handValue(playerHand)}`;
+
+  if (hideDealer && blackjackActive) {
+
+    document.getElementById("dealerTotal").textContent =
+      `Total: ${cardValue(dealerHand[0])} + ?`;
+
+  } else {
+
+    document.getElementById("dealerTotal").textContent =
+      `Total: ${handValue(dealerHand)}`;
+
+  }
+}
+
+
+/* VIRTUAL PLAYER RENDERING */
+
+function renderVirtualPlayer(index) {
+
+  const player = virtualPlayers[index];
+
+  const cardElement =
+    document.getElementById(`vp${index + 1}Cards`);
+
+  const totalElement =
+    document.getElementById(`vp${index + 1}Total`);
+
+  const betElement =
+    document.getElementById(`vp${index + 1}Bet`);
+
+  const statusElement =
+    document.getElementById(`vp${index + 1}Status`);
+
+  cardElement.innerHTML =
+    player.hand.map(card => renderCard(card)).join("");
+
+  totalElement.textContent =
+    player.hand.length
+      ? `Total: ${handValue(player.hand)}`
+      : "—";
+
+  betElement.textContent =
+    player.bet || "—";
+
+  statusElement.textContent =
+    player.status;
+}
+
+
+function renderAllVirtualPlayers() {
+
+  virtualPlayers.forEach((_, index) => {
+    renderVirtualPlayer(index);
+  });
 
 }
 
 
-function renderBlackjack(
-  hideDealer = true
-) {
+/* VIRTUAL PLAYER AI */
 
-  $("playerHand").innerHTML =
-    blackjack.player
-      .map(card =>
-        renderCard(card)
-      )
-      .join("");
+function dealVirtualPlayers() {
 
+  virtualPlayers.forEach(player => {
 
-  $("dealerHand").innerHTML =
-    blackjack.dealer
-      .map((card, index) =>
-        renderCard(
-          card,
-          hideDealer &&
-          index === 1
-        )
-      )
-      .join("");
+    player.bet = randomVirtualBet();
 
+    player.hand = [
+      drawCard(),
+      drawCard()
+    ];
 
-  $("playerTotal").textContent =
-    blackjack.player.length
-      ? handValue(
-          blackjack.player
-        )
-      : "0";
+    player.status = "Playing";
+  });
 
-
-  $("dealerTotal").textContent =
-    blackjack.dealer.length
-      ? (
-          hideDealer
-            ? "?"
-            : handValue(
-                blackjack.dealer
-              )
-        )
-      : "0";
-
+  renderAllVirtualPlayers();
 }
 
 
-function dealBlackjack() {
+function randomVirtualBet() {
 
-  if (blackjack.active) {
+  const amounts = [20, 30, 40, 50, 75, 100];
 
-    showToast(
-      "Finish your current hand first."
-    );
+  return amounts[
+    Math.floor(Math.random() * amounts.length)
+  ];
+}
 
+
+function virtualPlayersPlay() {
+
+  virtualPlayers.forEach((player, index) => {
+
+    let safety = 0;
+
+    while (
+      handValue(player.hand) < 16 &&
+      safety < 5
+    ) {
+
+      player.hand.push(drawCard());
+      safety++;
+    }
+
+    const total = handValue(player.hand);
+
+    if (total > 21) {
+      player.status = "BUST";
+    } else if (total === 21) {
+      player.status = "21!";
+    } else {
+      player.status = "STANDS";
+    }
+
+    renderVirtualPlayer(index);
+
+  });
+}
+
+
+/* DEAL */
+
+document.getElementById("dealButton").addEventListener("click", startBlackjack);
+
+
+function startBlackjack() {
+
+  if (blackjackActive) return;
+
+  const betInput =
+    document.getElementById("blackjackBet");
+
+  const bet = Number(betInput.value);
+
+  if (!validBet(bet)) return;
+
+  if (balance < bet) {
+    showBlackjackMessage("Not enough credits.");
     return;
   }
 
-
-  const bet =
-    getBet("blackjackBet");
-
-  if (bet === null) {
-    return;
-  }
-
-
-  deck =
-    createDeck();
-
-
-  blackjack = {
-
-    active: true,
-
-    player: [
-      deck.pop(),
-      deck.pop()
-    ],
-
-    dealer: [
-      deck.pop(),
-      deck.pop()
-    ],
-
-    bet: bet
-
-  };
-
+  blackjackBet = bet;
+  playerHasDoubled = false;
 
   changeBalance(-bet);
 
+  blackjackDeck = createDeck();
 
-  renderBlackjack(
-    true
-  );
+  dealerHand = [
+    drawCard(),
+    drawCard()
+  ];
 
+  playerHand = [
+    drawCard(),
+    drawCard()
+  ];
 
-  $("dealButton")
-    .disabled = true;
+  blackjackActive = true;
 
-  $("hitButton")
-    .disabled = false;
+  document.getElementById("dealButton").disabled = true;
+  document.getElementById("hitButton").disabled = false;
+  document.getElementById("standButton").disabled = false;
+  document.getElementById("doubleButton").disabled =
+    balance < bet;
 
-  $("standButton")
-    .disabled = false;
+  showBlackjackMessage("Your turn.");
 
+  dealVirtualPlayers();
 
-  if (
-    handValue(
-      blackjack.player
-    ) === 21
-  ) {
+  renderBlackjackHands(true);
 
-    finishBlackjack();
+  /* Natural blackjack */
 
-  } else {
+  if (isBlackjack(playerHand)) {
 
-    setResult(
-      $("blackjackResult"),
-      "Your move — hit or stand."
-    );
-
-  }
-
-}
-
-
-function hitBlackjack() {
-
-  if (!blackjack.active) {
+    finishBlackjack("blackjack");
     return;
   }
 
+  /* Virtual players act after a short delay */
 
-  blackjack.player.push(
-    deck.pop()
-  );
+  setTimeout(() => {
 
+    if (!blackjackActive) return;
 
-  renderBlackjack(
-    true
-  );
+    virtualPlayersPlay();
 
-
-  const total =
-    handValue(
-      blackjack.player
-    );
+  }, 500);
+}
 
 
-  if (total >= 21) {
+/* HIT */
 
-    finishBlackjack();
+document.getElementById("hitButton").addEventListener(
+  "click",
+  playerHit
+);
+
+
+function playerHit() {
+
+  if (!blackjackActive) return;
+
+  playerHand.push(drawCard());
+
+  renderBlackjackHands(true);
+
+  const total = handValue(playerHand);
+
+  if (total > 21) {
+
+    finishBlackjack("bust");
+
+  } else if (total === 21) {
+
+    finishBlackjack("stand");
 
   } else {
 
-    setResult(
-      $("blackjackResult"),
-      "Choose HIT or STAND."
+    showBlackjackMessage(
+      `You have ${total}. Hit or stand?`
     );
-
   }
-
 }
 
 
-function standBlackjack() {
+/* STAND */
 
-  if (!blackjack.active) {
+document.getElementById("standButton").addEventListener(
+  "click",
+  () => finishBlackjack("stand")
+);
+
+
+/* DOUBLE */
+
+document.getElementById("doubleButton").addEventListener(
+  "click",
+  playerDouble
+);
+
+
+function playerDouble() {
+
+  if (!blackjackActive) return;
+
+  if (playerHand.length !== 2) {
+    showBlackjackMessage(
+      "Double down is available on your first two cards."
+    );
     return;
   }
 
-  finishBlackjack();
+  if (balance < blackjackBet) {
+    showBlackjackMessage("Not enough credits to double.");
+    return;
+  }
 
+  changeBalance(-blackjackBet);
+
+  blackjackBet *= 2;
+  playerHasDoubled = true;
+
+  playerHand.push(drawCard());
+
+  renderBlackjackHands(true);
+
+  if (handValue(playerHand) > 21) {
+    finishBlackjack("bust");
+  } else {
+    finishBlackjack("stand");
+  }
 }
 
 
-function finishBlackjack() {
+/* FINISH */
 
-  while (
-    handValue(
-      blackjack.dealer
-    ) < 17
-  ) {
+function finishBlackjack(reason) {
 
-    blackjack.dealer.push(
-      deck.pop()
-    );
+  if (!blackjackActive) return;
 
+  blackjackActive = false;
+
+  document.getElementById("hitButton").disabled = true;
+  document.getElementById("standButton").disabled = true;
+  document.getElementById("doubleButton").disabled = true;
+
+  /* Dealer plays */
+
+  while (handValue(dealerHand) < 17) {
+    dealerHand.push(drawCard());
   }
 
+  renderBlackjackHands(false);
 
-  renderBlackjack(
-    false
-  );
+  const playerTotal = handValue(playerHand);
+  const dealerTotal = handValue(dealerHand);
 
-
-  const player =
-    handValue(
-      blackjack.player
-    );
-
-  const dealer =
-    handValue(
-      blackjack.dealer
-    );
-
-
+  let result = "";
   let payout = 0;
+  let net = 0;
+  let type = "loss";
 
-  let message = "";
+  if (reason === "bust" || playerTotal > 21) {
 
-  let type = "";
+    result = `You bust with ${playerTotal}. Dealer wins.`;
 
+  } else if (isBlackjack(playerHand) && !isBlackjack(dealerHand)) {
 
-  if (player > 21) {
-
-    message =
-      `Bust — you lost ${formatCredits(blackjack.bet)} CR.`;
-
-    type = "loss";
-
-    addHistory(
-      "Blackjack",
-      -blackjack.bet,
-      `Bust · Bet ${blackjack.bet} CR`,
-      "🃏"
-    );
-
-  } else if (
-    dealer > 21 ||
-    player > dealer
-  ) {
-
-    payout =
-      blackjack.bet * 2;
-
-    changeBalance(
-      payout
-    );
-
-    message =
-      `You win ${formatCredits(payout)} CR!`;
-
+    payout = blackjackBet * 2.5;
+    result = "BLACKJACK! You win!";
     type = "win";
 
-    addHistory(
-      "Blackjack",
-      blackjack.bet,
-      `Won · Bet ${blackjack.bet} CR`,
-      "🃏"
-    );
-
   } else if (
-    player === dealer
+    isBlackjack(dealerHand) &&
+    !isBlackjack(playerHand)
   ) {
 
-    payout =
-      blackjack.bet;
+    result = "Dealer has Blackjack.";
 
-    changeBalance(
-      payout
-    );
+  } else if (dealerTotal > 21) {
 
-    message =
-      "Push — your bet was returned.";
+    payout = blackjackBet * 2;
+    result = `Dealer busts with ${dealerTotal}. You win!`;
+    type = "win";
 
-    addHistory(
-      "Blackjack",
-      0,
-      `Push · Bet ${blackjack.bet} CR`,
-      "🃏"
-    );
+  } else if (playerTotal > dealerTotal) {
+
+    payout = blackjackBet * 2;
+    result =
+      `You win ${playerTotal} to ${dealerTotal}!`;
+    type = "win";
+
+  } else if (playerTotal === dealerTotal) {
+
+    payout = blackjackBet;
+    result = `Push — both have ${playerTotal}.`;
+    type = "push";
 
   } else {
 
-    message =
-      `Dealer wins — you lost ${formatCredits(blackjack.bet)} CR.`;
-
-    type = "loss";
-
-    addHistory(
-      "Blackjack",
-      -blackjack.bet,
-      `Dealer ${dealer} · You ${player}`,
-      "🃏"
-    );
-
+    result =
+      `Dealer wins ${dealerTotal} to ${playerTotal}.`;
   }
 
+  if (payout > 0) {
+    changeBalance(payout);
+  }
 
-  setResult(
-    $("blackjackResult"),
-    message,
+  net = payout - blackjackBet;
+
+  showBlackjackMessage(
+    `${result} ${net >= 0 ? "+" : ""}${net} CR`
+  );
+
+  addHistory(
+    "Blackjack",
+    result,
+    net,
     type
   );
 
+  updateVirtualResults(dealerTotal);
 
-  blackjack.active =
-    false;
+  document.getElementById("dealButton").disabled = false;
+}
 
 
-  $("dealButton")
-    .disabled = false;
+function updateVirtualResults(dealerTotal) {
 
-  $("hitButton")
-    .disabled = true;
+  virtualPlayers.forEach((player, index) => {
 
-  $("standButton")
-    .disabled = true;
+    const total = handValue(player.hand);
 
+    if (total > 21) {
+      player.status = "BUST";
+    } else if (dealerTotal > 21) {
+      player.status = "WIN";
+    } else if (total > dealerTotal) {
+      player.status = "WIN";
+    } else if (total === dealerTotal) {
+      player.status = "PUSH";
+    } else {
+      player.status = "LOSE";
+    }
+
+    renderVirtualPlayer(index);
+
+  });
+}
+
+
+function showBlackjackMessage(message) {
+
+  document.getElementById(
+    "blackjackStatus"
+  ).textContent = message;
 }
 
 
@@ -897,292 +769,115 @@ function finishBlackjack() {
    ROULETTE
 ========================= */
 
+const redNumbers = [
+  1,3,5,7,9,12,14,16,18,
+  19,21,23,25,27,30,32,34,36
+];
+
+const numberGrid =
+  document.getElementById("numberGrid");
+
+for (let number = 0; number <= 36; number++) {
+
+  const button = document.createElement("button");
+
+  button.textContent = number;
+
+  button.addEventListener("click", () => {
+    playRoulette(number);
+  });
+
+  numberGrid.appendChild(button);
+}
+
+
+document.querySelectorAll(
+  "[data-roulette]"
+).forEach(button => {
+
+  button.addEventListener("click", () => {
+    playRoulette(button.dataset.roulette);
+  });
+
+});
+
 
 function getRouletteColor(number) {
 
-  if (number === 0) {
-    return "green";
-  }
-
-
-  const redNumbers = [
-    1, 3, 5, 7, 9,
-    12, 14, 16, 18,
-    19, 21, 23, 25,
-    27, 30, 32, 34,
-    36
-  ];
-
+  if (number === 0) return "green";
 
   return redNumbers.includes(number)
     ? "red"
     : "black";
-
 }
 
 
-function buildNumberGrid() {
-
-  const grid =
-    $("numberGrid");
-
-
-  if (grid.children.length) {
-    return;
-  }
-
-
-  for (
-    let number = 0;
-    number <= 36;
-    number++
-  ) {
-
-    const button =
-      document.createElement(
-        "button"
-      );
-
-
-    button.textContent =
-      number;
-
-
-    const color =
-      getRouletteColor(
-        number
-      );
-
-
-    if (color === "red") {
-
-      button.className =
-        "red-number";
-
-    } else if (
-      color === "black"
-    ) {
-
-      button.className =
-        "black-number";
-
-    }
-
-
-    button.onclick = () => {
-
-      document
-        .querySelectorAll(
-          ".number-grid button"
-        )
-        .forEach(
-          b =>
-            b.classList.remove(
-              "selected"
-            )
-        );
-
-
-      document
-        .querySelectorAll(
-          ".roulette-buttons .choice"
-        )
-        .forEach(
-          b =>
-            b.classList.remove(
-              "selected"
-            )
-        );
-
-
-      button.classList.add(
-        "selected"
-      );
-
-
-      rouletteChoice =
-        number;
-
-    };
-
-
-    grid.appendChild(
-      button
-    );
-
-  }
-
-}
-
-
-function selectRoulette(choice) {
-
-  rouletteChoice =
-    choice;
-
-
-  document
-    .querySelectorAll(
-      ".roulette-buttons .choice"
-    )
-    .forEach(button => {
-
-      button.classList.toggle(
-        "selected",
-        button.dataset.choice === choice
-      );
-
-    });
-
-
-  document
-    .querySelectorAll(
-      ".number-grid button"
-    )
-    .forEach(
-      button =>
-        button.classList.remove(
-          "selected"
-        )
-    );
-
-}
-
-
-function playRoulette() {
+function playRoulette(choice) {
 
   const bet =
-    getBet("rouletteBet");
+    Number(document.getElementById("rouletteBet").value);
 
-  if (
-    bet === null
-  ) {
+  if (!validBet(bet)) return;
 
-    return;
+  changeBalance(-bet);
 
-  }
-
-
-  if (
-    rouletteChoice === null
-  ) {
-
-    showToast(
-      "Choose a color or number first."
-    );
-
-    return;
-
-  }
-
-
-  const wheel =
-    $("rouletteWheel");
-
-
-  wheel.classList.remove(
-    "spin"
-  );
-
-  void wheel.offsetWidth;
-
-  wheel.classList.add(
-    "spin"
-  );
-
-
-  const number =
-    Math.floor(
-      Math.random() * 37
-    );
-
+  const result =
+    Math.floor(Math.random() * 37);
 
   const color =
-    getRouletteColor(
-      number
-    );
-
-
-  $("rouletteNumber")
-    .textContent = number;
-
-
-  changeBalance(
-    -bet
-  );
-
+    getRouletteColor(result);
 
   let payout = 0;
+  let message =
+    `Result: ${result} ${color}`;
 
+  let type = "loss";
 
   if (
-    rouletteChoice === color
+    typeof choice === "number" &&
+    result === choice
   ) {
 
-    if (
-      color === "green"
-    ) {
-
-      payout =
-        bet * 14;
-
-    } else {
-
-      payout =
-        bet * 2;
-
-    }
+    payout = bet * 35;
+    message += " — Exact number WIN!";
+    type = "win";
 
   } else if (
-    typeof rouletteChoice === "number" &&
-    rouletteChoice === number
+    typeof choice === "string" &&
+    choice === color
   ) {
 
-    payout =
-      bet * 35;
+    if (color === "green") {
+      payout = bet * 14;
+    } else {
+      payout = bet * 2;
+    }
 
+    message += " — WIN!";
+    type = "win";
   }
-
 
   if (payout > 0) {
-
-    changeBalance(
-      payout
-    );
-
-
-    setResult(
-      $("rouletteResult"),
-      `Ball landed on ${number} ${color}. You won ${formatCredits(payout)} CR!`,
-      "win"
-    );
-
-
-    addHistory(
-      "Roulette",
-      payout - bet,
-      `Result ${number} ${color}`,
-      "🎡"
-    );
-
-  } else {
-
-    setResult(
-      $("rouletteResult"),
-      `Ball landed on ${number} ${color}. You lost ${formatCredits(bet)} CR.`,
-      "loss"
-    );
-
-
-    addHistory(
-      "Roulette",
-      -bet,
-      `Result ${number} ${color}`,
-      "🎡"
-    );
-
+    changeBalance(payout);
   }
 
+  const net = payout - bet;
+
+  document.getElementById(
+    "rouletteResult"
+  ).textContent = result;
+
+  document.getElementById(
+    "rouletteMessage"
+  ).textContent =
+    `${message} ${net >= 0 ? "+" : ""}${net} CR`;
+
+  addHistory(
+    "Roulette",
+    message,
+    net,
+    type
+  );
 }
 
 
@@ -1190,152 +885,143 @@ function playRoulette() {
    DICE
 ========================= */
 
+document.querySelectorAll(
+  "[data-dice]"
+).forEach(button => {
 
-function playDice(choice) {
+  button.addEventListener("click", () => {
 
-  const bet =
-    getBet("diceBet");
+    const bet =
+      Number(document.getElementById("diceBet").value);
 
-  if (
-    bet === null
-  ) {
+    if (!validBet(bet)) return;
 
-    return;
+    const choice = button.dataset.dice;
 
-  }
+    changeBalance(-bet);
 
+    const roll =
+      Math.floor(Math.random() * 6) + 1;
 
-  const die =
-    $("dice");
-
-
-  die.classList.remove(
-    "roll"
-  );
-
-  void die.offsetWidth;
-
-  die.classList.add(
-    "roll"
-  );
-
-
-  const number =
-    Math.floor(
-      Math.random() * 6
-    ) + 1;
-
-
-  die.textContent =
-    diceFaces[number - 1];
-
-
-  const won =
-    choice === "low"
-      ? number <= 3
-      : number >= 4;
-
-
-  changeBalance(
-    -bet
-  );
-
-
-  if (won) {
+    const won =
+      choice === "low"
+        ? roll <= 3
+        : roll >= 4;
 
     const payout =
-      bet * 2;
+      won ? bet * 2 : 0;
 
-    changeBalance(
-      payout
-    );
+    if (payout > 0) {
+      changeBalance(payout);
+    }
 
+    const net = payout - bet;
 
-    setResult(
-      $("diceResult"),
-      `You rolled ${number}. You won ${formatCredits(payout)} CR!`,
-      "win"
-    );
+    document.getElementById(
+      "diceDisplay"
+    ).textContent = diceEmoji(roll);
 
-
-    addHistory(
-      "Dice",
-      payout - bet,
-      `Rolled ${number} · ${choice}`,
-      "🎲"
-    );
-
-  } else {
-
-    setResult(
-      $("diceResult"),
-      `You rolled ${number}. You lost ${formatCredits(bet)} CR.`,
-      "loss"
-    );
-
+    document.getElementById(
+      "diceResult"
+    ).textContent =
+      `You rolled ${roll}. ${
+        won ? "You win!" : "You lose."
+      } ${net >= 0 ? "+" : ""}${net} CR`;
 
     addHistory(
       "Dice",
-      -bet,
-      `Rolled ${number} · ${choice}`,
-      "🎲"
+      `Rolled ${roll}`,
+      net,
+      won ? "win" : "loss"
     );
 
+  });
+
+});
+
+
+function diceEmoji(number) {
+
+  const dice = [
+    "⚀",
+    "⚁",
+    "⚂",
+    "⚃",
+    "⚄",
+    "⚅"
+  ];
+
+  return dice[number - 1];
+}
+
+
+/* =========================
+   VALIDATION
+========================= */
+
+function validBet(bet) {
+
+  if (!Number.isFinite(bet)) {
+    alert("Enter a valid bet.");
+    return false;
   }
 
+  if (bet < 10 || bet > 500) {
+    alert("Bet must be between 10 and 500 credits.");
+    return false;
+  }
+
+  if (bet % 10 !== 0) {
+    alert("Bet must be in increments of 10.");
+    return false;
+  }
+
+  if (balance < bet) {
+    alert("Not enough credits.");
+    return false;
+  }
+
+  return true;
 }
 
 
 /* =========================
-   HISTORY / RESET
+   RESET
 ========================= */
 
-
-function clearHistory() {
+document.getElementById(
+  "clearHistory"
+).addEventListener("click", () => {
 
   history = [];
 
-  saveData();
-
+  saveState();
   renderHistory();
 
-}
+});
 
 
-function resetCredits() {
+document.getElementById(
+  "resetCredits"
+).addEventListener("click", () => {
 
-  balance =
-    STARTING_BALANCE;
-
+  balance = 1000;
   history = [];
 
-  blackjack = {
-    active: false,
-    player: [],
-    dealer: [],
-    bet: 0
-  };
-
-  saveData();
+  saveState();
 
   renderBalance();
-
   renderHistory();
 
-  showToast(
-    "Credits reset to 1,000."
-  );
+  alert("Your virtual credits were reset to 1,000.");
 
-}
+});
 
 
 /* =========================
-   STARTUP
+   START
 ========================= */
 
-
 renderBalance();
-
 renderHistory();
-
-buildNumberGrid();
+renderAllVirtualPlayers();
